@@ -1,0 +1,20 @@
+import 'dart:async';
+
+import 'package:chopper/chopper.dart';
+import '../../../../core/repositories/usecase/auth_usecase.dart';
+
+class HeaderInterceptor implements Interceptor {
+  final AuthUsecase authUsecase;
+
+  HeaderInterceptor(this.authUsecase);
+
+  @override
+  FutureOr<Response<BodyType>> intercept<BodyType>(Chain<BodyType> chain) async {
+    final Request original = chain.request;
+
+    final Request updated = await authUsecase.addAuthHeaderInterceptor(original);
+    final Response<BodyType> response = await chain.proceed(updated);
+
+    return response;
+  }
+}

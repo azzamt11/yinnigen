@@ -1,0 +1,50 @@
+import 'package:get_it/get_it.dart';
+import '../../repositories/usecase/auth_usecase.dart';
+import '../../base/configs/configs.dart';
+import '../../repositories/cache/volume/image_cache_manager.dart';
+import '../../repositories/network/service_manager.dart';
+import '../../repositories/cache/database/app_database.dart';
+import '../../repositories/network/utilities/json_converter.dart';
+
+final injector = GetIt.instance;
+
+Future<void> injectServices() async {
+  injector.registerSingleton<Map<Type, JsonFactory>>(<Type, JsonFactory>{});
+  
+  injector.get<Map<Type, JsonFactory>>().addAll({
+    // ProductListApiResponse: ProductListApiResponse.fromJson,
+    // SignInApiResponse: SignInApiResponse.fromJson,
+    // SignUpApiResponse: SignUpApiResponse.fromJson,
+  });
+
+  injector.registerLazySingleton<JsonModelConverter>(() => JsonModelConverter(
+    injector.get<Map<Type, JsonFactory>>(),
+  ));
+
+  injector.registerSingleton<AppDatabase>(AppDatabase());
+
+  injector.registerLazySingleton<AuthUsecase>(() => AuthUsecase(
+    injector.get<AppDatabase>(),
+  ));
+
+  injector.registerLazySingleton<ImageUrlCacheManager>(() => ImageUrlCacheManager.create());
+
+  injector.registerLazySingleton<ServiceManager>(() => ServiceManager.create(
+    Configs.baseUrl,
+    injector.get<JsonModelConverter>(),
+    injector.get<AuthUsecase>(),
+  ));
+
+  // ignore: unused_local_variable
+  final sm = injector.get<ServiceManager>();
+
+  // injector.registerSingleton<AuthService>(
+  //   AuthService.create(sm.authClient),
+  // );
+
+  // injector.registerLazySingleton<AuthRepository>(() => AuthRepository(
+  //   injector.get<AuthService>(),
+  //   injector.get<AuthUsecase>(),
+  //   injector.get<AppDatabase>()
+  // ));
+}

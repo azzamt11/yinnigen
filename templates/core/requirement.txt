@@ -1,0 +1,22 @@
+get_it
+google_fonts
+auto_route
+drift
+drift_flutter
+sqlite3_flutter_libs
+path
+path_provider
+flutter_cache_manager
+chopper
+freezed
+json_annotation
+freezed_annotation
+
+
+--dev auto_route_generator
+--dev build_runner
+--dev drift
+--dev chopper_generator
+--dev freezed
+--dev drift_dev
+--dev json_serializable

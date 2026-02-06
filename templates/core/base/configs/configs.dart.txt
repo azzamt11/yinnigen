@@ -1,0 +1,6 @@
+class Configs {
+
+  static final String baseUrl = "no_url";
+  static final String apiKey = "no_key";
+
+}
