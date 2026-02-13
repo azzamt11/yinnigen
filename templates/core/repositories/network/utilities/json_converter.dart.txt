@@ -40,4 +40,15 @@ class JsonModelConverter extends JsonConverter {
     final jsonRes = await super.convertResponse(response);
     return jsonRes.copyWith<ResultType>(body: _decode<Item>(jsonRes.body));
   }
+
+  @override
+  FutureOr<Response> convertError<ResultType, Item>(Response response) async {
+    debugPrint('============= RAW BACKEND ERROR (PRE-DECODE) =============');
+    debugPrint('Status: ${response.statusCode}');
+    debugPrint('Raw error bodyString: ${response.bodyString}');
+    debugPrint('===========================================================');
+
+    final errorRes = await super.convertError<ResultType, Item>(response);
+    return errorRes;
+  }
 }
