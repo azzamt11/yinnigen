@@ -3814,6 +3814,36 @@
             ""
         ],
         "description": "pkg/middleware/client"
+    },
+
+    "yinni-service-auth-config": {
+        "prefix": "yinni-service-acc",
+        "body": [
+            "server:",
+            "\thttp:",
+            "\t\taddr: ${KRATOS_SERVER_HTTP_ADDR:0.0.0.0:8080}",
+            "\t\ttimeout: 30s",
+            "\tgrpc:",
+            "\t\taddr: ${KRATOS_SERVER_GRPC_ADDR:0.0.0.0:9090}",
+            "\t\ttimeout: 30s",
+            "",
+            "auth:",
+            "\tjwt_secret: ${KRATOS_AUTH_JWT_SECRET:no-secret}",
+            "\tjwt_expire: ${KRATOS_AUTH_JWT_EXPIRE:3600}",
+            "",
+            "admin:",
+            "\tenabled: true ",
+            "\temail: ${KRATOS_ADMIN_EMAIL:noemail@yinni.com}",
+            "\tpassword: ${KRATOS_ADMIN_PASSWORD:admin123}",
+            "\tname: ${KRATOS_ADMIN_NAME:System Administrator}",
+            "",
+            "data:",
+            "\tdatabase:",
+            "\t\tdriver: mysql",
+            "\t\tsource: ${KRATOS_DATA_DATABASE_SOURCE}",
+            ""
+        ],
+        "description": "auth/configs/configs"
     }
 
    
