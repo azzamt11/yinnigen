@@ -5802,7 +5802,30 @@
             ""
         ],
         "description": "features/home/presentation/screens/main/tabs"
+    },
+    
+    "yinni-post": {
+        "prefix": "yinni-post",
+        "body": [
+            "import 'package:freezed_annotation/freezed_annotation.dart';",
+            "",
+            "part 'post.freezed.dart';",
+            "part 'post.g.dart';",
+            "",
+            "@freezed",
+            "abstract class Post with _$Post {",
+            "\t// ignore: invalid_annotation_target",
+            "\t@JsonSerializable(fieldRename: FieldRename.snake)",
+            "\tconst factory Post({",
+            "\t\trequired int id,",
+            "\t\t@Default(\"\") String post,",
+            "\t\t@Default(0) int userId,",
+            "\t}) = _Post;",
+            "",
+            "\tfactory Post.fromJson(Map<String, dynamic> json) => _$PostFromJson(json);",
+            "}",
+            ""
+        ],
+        "description": "features/main/data/post"
     }
-
-   
 }
