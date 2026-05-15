@@ -63,11 +63,16 @@ class AppInputField extends StatefulWidget {
 class _AppInputFieldState extends State<AppInputField> {
   late bool _isObscured;
   late final FocusNode _focusNode;
+  TextEditingController? _internalController;
+
+  TextEditingController get _effectiveController =>
+      widget.controller ?? _internalController!;
 
   @override
   void initState() {
     super.initState();
     _isObscured = widget.obscureText;
+    _internalController = widget.controller == null ? TextEditingController() : null;
     _focusNode = FocusNode();
     _focusNode.addListener(_onFocusChanged);
   }
@@ -78,11 +83,40 @@ class _AppInputFieldState extends State<AppInputField> {
     if (oldWidget.obscureText != widget.obscureText) {
       _isObscured = widget.obscureText;
     }
+    if (oldWidget.controller != widget.controller) {
+      if (oldWidget.controller == null && widget.controller != null) {
+        _internalController?.dispose();
+        _internalController = null;
+      } else if (oldWidget.controller != null && widget.controller == null) {
+        _internalController = TextEditingController.fromValue(oldWidget.controller?.value);
+      }
+    }
   }
 
   void _onFocusChanged() {
+    if (!_focusNode.hasFocus) {
+      _clearEditingState();
+    }
     if (mounted) {
       setState(() {});
+    }
+  }
+
+  void _clearEditingState() {
+    // Reset IME composing and selection state so switching fields does not restore
+    // stale cursor handles or keyboard selection state on the next focus.
+    _effectiveController
+      ..clearComposing()
+      ..selection = const TextSelection.collapsed(offset: -1);
+  }
+
+  void _handleTap() {
+    final currentFocus = FocusManager.instance.primaryFocus;
+    if (currentFocus != null && currentFocus != _focusNode) {
+      currentFocus.unfocus();
+    }
+    if (!_focusNode.hasFocus) {
+      _focusNode.requestFocus();
     }
   }
 
@@ -90,6 +124,7 @@ class _AppInputFieldState extends State<AppInputField> {
   void dispose() {
     _focusNode.removeListener(_onFocusChanged);
     _focusNode.dispose();
+    _internalController?.dispose();
     super.dispose();
   }
 
@@ -119,13 +154,15 @@ class _AppInputFieldState extends State<AppInputField> {
         focusNode: _focusNode,
         style: widget.textStyle ?? t.textTheme.bodyLarge?.copyWith(color: Colors.grey.shade800),
         obscureText: isPassword && _isObscured,
+        onTap: _handleTap,
+        onTapOutside: (_) => _focusNode.unfocus(),
         keyboardType: widget.keyboardType,
         validator: widget.validator,
         onSaved: widget.onSaved,
         autofillHints: widget.autofillHints,
         enableSuggestions: widget.enableSuggestions ?? !isPassword,
         autocorrect: widget.autocorrect ?? !isPassword,
-        controller: widget.controller,
+        controller: _effectiveController,
         decoration: InputDecoration(
           hintText: widget.hint,
           hintStyle: (widget.textStyle ?? t.textTheme.bodyLarge)?.copyWith(
