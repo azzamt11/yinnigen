@@ -13,7 +13,8 @@ class AppInputField extends StatefulWidget {
     this.enableSuggestions,
     this.autocorrect,
     this.fillColor = Colors.white,
-    this.contentPadding = const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+    this.contentPadding =
+        const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
     this.borderRadius = 10,
     this.enabledBorderColor = Colors.black,
     this.enabledBorderWidth = 0.7,
@@ -63,6 +64,7 @@ class AppInputField extends StatefulWidget {
 class _AppInputFieldState extends State<AppInputField> {
   late bool _isObscured;
   late final FocusNode _focusNode;
+
   TextEditingController? _internalController;
 
   TextEditingController get _effectiveController =>
@@ -71,58 +73,44 @@ class _AppInputFieldState extends State<AppInputField> {
   @override
   void initState() {
     super.initState();
+
     _isObscured = widget.obscureText;
-    _internalController = widget.controller == null ? TextEditingController() : null;
+
+    _internalController =
+        widget.controller == null ? TextEditingController() : null;
+
     _focusNode = FocusNode();
-    _focusNode.addListener(_onFocusChanged);
+
+    _focusNode.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   @override
   void didUpdateWidget(covariant AppInputField oldWidget) {
     super.didUpdateWidget(oldWidget);
+
     if (oldWidget.obscureText != widget.obscureText) {
       _isObscured = widget.obscureText;
     }
+
     if (oldWidget.controller != widget.controller) {
       if (oldWidget.controller == null && widget.controller != null) {
         _internalController?.dispose();
         _internalController = null;
-      } else if (oldWidget.controller != null && widget.controller == null) {
-        _internalController = TextEditingController.fromValue(oldWidget.controller?.value);
+      } else if (oldWidget.controller != null &&
+          widget.controller == null) {
+        _internalController = TextEditingController.fromValue(
+          oldWidget.controller?.value,
+        );
       }
-    }
-  }
-
-  void _onFocusChanged() {
-    if (!_focusNode.hasFocus) {
-      _clearEditingState();
-    }
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  void _clearEditingState() {
-    // Reset IME composing and selection state so switching fields does not restore
-    // stale cursor handles or keyboard selection state on the next focus.
-    _effectiveController
-      ..clearComposing()
-      ..selection = const TextSelection.collapsed(offset: -1);
-  }
-
-  void _handleTap() {
-    final currentFocus = FocusManager.instance.primaryFocus;
-    if (currentFocus != null && currentFocus != _focusNode) {
-      currentFocus.unfocus();
-    }
-    if (!_focusNode.hasFocus) {
-      _focusNode.requestFocus();
     }
   }
 
   @override
   void dispose() {
-    _focusNode.removeListener(_onFocusChanged);
     _focusNode.dispose();
     _internalController?.dispose();
     super.dispose();
@@ -131,6 +119,7 @@ class _AppInputFieldState extends State<AppInputField> {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
+
     final isPassword = widget.obscureText;
     final glowColor = widget.focusGlowColor ?? t.primaryColor;
     final isFocused = _focusNode.hasFocus;
@@ -151,60 +140,80 @@ class _AppInputFieldState extends State<AppInputField> {
             : const [],
       ),
       child: TextFormField(
+        key: widget.key,
         focusNode: _focusNode,
-        style: widget.textStyle ?? t.textTheme.bodyLarge?.copyWith(color: Colors.grey.shade800),
+        controller: _effectiveController,
+        obscuringCharacter: '•',
+        style: widget.textStyle ??
+            t.textTheme.bodyLarge?.copyWith(
+              color: Colors.grey.shade800,
+            ),
         obscureText: isPassword && _isObscured,
-        onTap: _handleTap,
-        onTapOutside: (_) => _focusNode.unfocus(),
         keyboardType: widget.keyboardType,
         validator: widget.validator,
         onSaved: widget.onSaved,
         autofillHints: widget.autofillHints,
-        enableSuggestions: widget.enableSuggestions ?? !isPassword,
-        autocorrect: widget.autocorrect ?? !isPassword,
-        controller: _effectiveController,
+        enableSuggestions:widget.enableSuggestions ?? !isPassword,
+        autocorrect:widget.autocorrect ?? !isPassword,
+        onTapOutside: (_) {
+          FocusScope.of(context).unfocus();
+        },
         decoration: InputDecoration(
           hintText: widget.hint,
-          hintStyle: (widget.textStyle ?? t.textTheme.bodyLarge)?.copyWith(
+          hintStyle:
+              (widget.textStyle ?? t.textTheme.bodyLarge)
+                  ?.copyWith(
             color: widget.hintColor,
           ),
-          floatingLabelBehavior: FloatingLabelBehavior.never,
+          floatingLabelBehavior:FloatingLabelBehavior.never,
           filled: true,
           fillColor: widget.fillColor,
           contentPadding: widget.contentPadding,
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(widget.borderRadius),
+            borderRadius:
+                BorderRadius.circular(widget.borderRadius),
             borderSide: BorderSide(
               color: widget.enabledBorderColor,
               width: widget.enabledBorderWidth,
             ),
           ),
+
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(widget.borderRadius),
+            borderRadius:
+                BorderRadius.circular(widget.borderRadius),
             borderSide: BorderSide(
-              color: widget.focusedBorderColor ?? t.primaryColor,
+              color:
+                  widget.focusedBorderColor ??
+                      t.primaryColor,
               width: widget.focusedBorderWidth,
             ),
           ),
+
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(widget.borderRadius),
+            borderRadius:
+                BorderRadius.circular(widget.borderRadius),
             borderSide: BorderSide(
               color: widget.errorBorderColor,
               width: widget.errorBorderWidth,
             ),
           ),
+
           focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(widget.borderRadius),
+            borderRadius:
+                BorderRadius.circular(widget.borderRadius),
             borderSide: BorderSide(
               color: widget.errorBorderColor,
               width: widget.focusedErrorBorderWidth,
             ),
           ),
+
           prefixIcon: widget.prefixIcon,
           suffixIcon: isPassword
               ? IconButton(
                   icon: Icon(
-                    _isObscured ? Icons.visibility_off : Icons.visibility,
+                    _isObscured
+                        ? Icons.visibility_off
+                        : Icons.visibility,
                     color: Colors.grey,
                   ),
                   onPressed: () {

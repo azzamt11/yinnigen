@@ -1,0 +1,207 @@
+import 'dart:math';
+import 'package:auto_route/auto_route.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+
+@RoutePage()
+class SignInScreen extends StatefulWidget {
+  const SignInScreen({super.key});
+
+  @override
+  State<SignInScreen> createState() => _SignInScreenState();
+}
+
+class _SignInScreenState extends State<SignInScreen> {
+  final _formKey = GlobalKey<FormState>();
+  late AuthCubit _authCubit;
+  bool _isCubitInitialized = false;
+  ScaffoldMessengerState? _scaffoldMessenger;
+
+  String _email = '';
+  String _password = '';
+
+  void _showErrorSnackBar(String message) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final messenger = _scaffoldMessenger;
+      if (messenger == null) return;
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(message)));
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _scaffoldMessenger = ScaffoldMessenger.maybeOf(context);
+    if (!_isCubitInitialized) {
+      _authCubit = AuthCubit.create(context);
+      _isCubitInitialized = true;
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_isCubitInitialized) {
+      _authCubit.close();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    return BlocProvider<AuthCubit>.value(
+      value: _authCubit,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            return SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: BlocListener<AuthCubit, AuthState>(
+                  listener: (_, state) {
+                    if (!mounted) return;
+                    if (state is LoadedAuthState) {
+                      context.router.replaceAll([const MainRoute()]);
+                      return;
+                    }
+                    if (state is ErrorAuthState) {
+                      _showErrorSnackBar(state.error?.message ?? "Something went wrong");
+                    }
+                  },
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 70),
+                        SizedBox(
+                          height: max(constraints.maxHeight - 670, 120),
+                          child: Center(
+                            child: Image.asset(
+                              "assets/features/auth/ic_splash.png",
+                              height: 300,
+                              width: 300,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        _label("Email", t),
+                        const SizedBox(height: 8),
+                        AppInputField(
+                          hint: "Email",
+                          keyboardType: TextInputType.emailAddress,
+                          onSaved: (v) => _email = v!,
+                          validator: (v) =>
+                              v == null || v.isEmpty ? "Email is required" : null,
+                        ),
+                        const SizedBox(height: 24),
+                        _label("Password", t),
+                        const SizedBox(height: 8),
+                        AppInputField(
+                          hint: "Password",
+                          obscureText: true,
+                          onSaved: (v) => _password = v!,
+                          validator: (v) => v == null || v.length < 6
+                              ? "Minimum 6 characters"
+                              : null,
+                        ),
+                        const SizedBox(height: 12),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {},
+                            child: Text(
+                              "Reset Password",
+                              style: t.textTheme.bodyMedium?.copyWith(color: Colors.black)
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        BlocBuilder<AuthCubit, AuthState>(
+                          builder: (context, state) {
+                            final isLoading = state is LoadingAuthState;
+                            return SizedBox(
+                              width: double.infinity,
+                              height: 45,
+                              child: ElevatedButton(
+                                onPressed: isLoading ? null
+                                : () {
+                                  FocusScope.of(context).unfocus();
+                                  if (_formKey.currentState!.validate()) {
+                                    _formKey.currentState!.save();
+                                    context.read<AuthCubit>().signIn(_email, _password);
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Theme.of(context).primaryColor,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ).copyWith(
+                                  splashFactory: InkRipple.splashFactory,
+                                  overlayColor: const WidgetStatePropertyAll(Colors.white12),
+                                ),
+                                child: isLoading ? Center(
+                                  child: SizedBox(
+                                    height: 25,
+                                    width: 25,
+                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  )
+                                ) :
+                                Text(
+                                  "Sign In",
+                                  style: t.textTheme.titleMedium
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 32),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Belum punya akun? ",
+                              style: t.textTheme.bodyLarge?.copyWith(color: Colors.black87),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                context.router.push(SignUpRoute());
+                              },
+                              child: Text(
+                                "Sign Up",
+                                style: t.textTheme.bodyLarge?.copyWith(color: t.primaryColor),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 40),
+                        ],
+                    ),
+                  ),
+                ),
+              )
+            );
+          },
+        ),
+      )
+    );
+  }
+
+  Widget _label(String text, ThemeData t) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        text,
+        style: t.textTheme.bodyMedium?.copyWith(color: Colors.grey.shade800)
+      ),
+    );
+  }
+
+}
