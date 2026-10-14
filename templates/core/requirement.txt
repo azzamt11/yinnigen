@@ -1,20 +1,20 @@
-get_it
-google_fonts
-auto_route
-drift
-drift_flutter
-sqlite3_flutter_libs
-path
-path_provider
-flutter_cache_manager
-chopper
-json_annotation
-freezed_annotation
+get_it:^9.3.0
+google_fonts:^8.2.1
+auto_route:^11.2.0
+drift:>=2.32.1 <2.33.0
+drift_flutter:^0.3.1
+sqlite3_flutter_libs:^0.6.0+eol
+path:^1.9.1
+path_provider:^2.1.6
+flutter_cache_manager:^3.4.5
+chopper:^8.7.1
+json_annotation:^4.12.0
+freezed_annotation:^3.1.0
 
 
---dev auto_route_generator
---dev build_runner
---dev chopper_generator
---dev freezed
---dev drift_dev
---dev json_serializable
+--dev auto_route_generator:>=10.5.0 <10.6.0
+--dev build_runner:^2.15.1
+--dev chopper_generator:^8.7.1
+--dev freezed:^3.2.5
+--dev drift_dev:>=2.32.1 <2.33.0
+--dev json_serializable:^6.14.1

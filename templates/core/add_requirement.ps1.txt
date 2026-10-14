@@ -1,0 +1,21 @@
+$ErrorActionPreference = "Stop"
+
+$RequirementFile = Join-Path $PSScriptRoot "lib\core\requirement.txt"
+
+Get-Content -LiteralPath $RequirementFile | ForEach-Object {
+  $Line = $_.Trim()
+
+  if ([string]::IsNullOrWhiteSpace($Line)) {
+    return
+  }
+
+  if ($Line.StartsWith("--dev ")) {
+    $Dependency = $Line.Substring(6).Trim()
+    Write-Host "Adding dev dependency $Dependency"
+    flutter pub add --dev $Dependency
+    return
+  }
+
+  Write-Host "Adding $Line"
+  flutter pub add $Line
+}
